@@ -1,8 +1,9 @@
 # Bài tập lớn 1 - Mật mã An ninh mạng
 
 ## Khởi chạy project
-Chạy các bước sau:
-###Cài đặt pip3
+**Chạy các bước sau:**
+
+Cài đặt pip3
 ```
 sudo apt-get update && apt-get -y install python3-pip
 ```
