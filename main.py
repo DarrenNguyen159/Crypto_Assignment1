@@ -12,6 +12,10 @@ from Crypto import Random
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QLabel, QMainWindow, QFileDialog, QLineEdit, QTabWidget
 
+class InvalidFile(Exception):
+    def __init__(self, *args, **kwargs):
+        return super().__init__(*args, **kwargs)
+
 class Window(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -23,7 +27,7 @@ class Window(QMainWindow):
         self.txtEdit = None
         self.tabWidget = None
         self.initGUI()
-    
+
     def initGUI(self):
         self.setWindowTitle(self.title)
         self.setMinimumSize(self.width, self.height)
@@ -87,6 +91,7 @@ class Window(QMainWindow):
             self.lbl.setStyleSheet('color: black')
 
     def Encrypt(self):
+        self.file = self.txtEdit.text()
         try:
             start = time.time()
             if self.tabWidget.currentIndex() == 0:
@@ -97,10 +102,14 @@ class Window(QMainWindow):
                 self.EncryptFileBlowFish()
             end = time.time()
             self.lblText('File has been encrypted successfully in ' + str(end -start) + ' seconds!', 'green')            
-        except Exception:
+        except InvalidFile:
+            self.lblText('Invalid file path!', 'red')
+            return
+        except Exception as e:
             self.lblText('Encryption failed', 'red')
 
     def Decrypt(self):
+        self.file = self.txtEdit.text()
         try:
             start = time.time()
             if self.tabWidget.currentIndex() == 0:
@@ -111,6 +120,9 @@ class Window(QMainWindow):
                 self.DecryptFileBlowFish()
             end = time.time()
             self.lblText('File has been decrypted successfully in ' + str(end -start) + ' seconds!', 'green')              
+        except InvalidFile:
+            self.lblText('Invalid file path!', 'red')
+            return
         except Exception:
             self.lblText('Decryption failed', 'red')
 
@@ -124,8 +136,7 @@ class Window(QMainWindow):
 
         fileName = self.file
         if not os.path.isfile(fileName):
-            self.lblText('invalid file path!', 'red')
-            return
+            raise InvalidFile()
         print("Encrypt BlowFish " + fileName)
 
         data = b''
@@ -145,7 +156,9 @@ class Window(QMainWindow):
         print(encrypted_data)
         
         #export encrypted file :
-        with open(self.file + '[Encrypted]', 'wb') as fout:
+        dirname = os.path.dirname(self.file) + '/'
+        onlyFileName = fileName[len(dirname):]
+        with open(dirname + '[Encrypted]' + onlyFileName, 'wb') as fout:
             fsz = os.path.getsize(fileName)
             fout.write(struct.pack('<Q', fsz))
             fout.write(encrypted_data)
@@ -158,8 +171,7 @@ class Window(QMainWindow):
 
         fileName = self.file
         if not os.path.isfile(fileName):
-            self.lblText('invalid file path!', 'red')
-            return
+            raise InvalidFile()
         print("Decrypt BlowFish " + fileName)
 
         data = b''
@@ -174,7 +186,9 @@ class Window(QMainWindow):
         decryptedData = cipher.decrypt(data)
         decryptedData = decryptedData[:fsz]
 
-        with open(self.file + '[Decrypted]', 'wb') as fout:
+        dirname = os.path.dirname(self.file) + '/'
+        onlyFileName = fileName[len(dirname):]
+        with open(dirname + '[Decrypted]' + onlyFileName, 'wb') as fout:
             fout.write(decryptedData)
             fout.close()
 
@@ -182,8 +196,7 @@ class Window(QMainWindow):
     def EncryptFileRSA(self):
         fileName = self.file
         if not os.path.isfile(fileName):
-            self.lblText('invalid file path!', 'red')
-            return
+            raise InvalidFile()
         print("Encrypt RSA " + fileName)
 
         data = b''
@@ -226,15 +239,17 @@ class Window(QMainWindow):
 
                 #Base 64 encode the encrypted file
                 b64EncryptedData = base64.b64encode(encryptedData)
-                with open(self.file + '[Encrypted]', 'wb') as fout:
+
+                dirname = os.path.dirname(self.file) + '/'
+                onlyFileName = fileName[len(dirname):]
+                with open(dirname + '[Encrypted]' + onlyFileName, 'wb') as fout:
                     fout.write(b64EncryptedData)
                     fout.close()
 
     def DecryptFileRSA(self):
         fileName = self.file
         if not os.path.isfile(fileName):
-            self.lblText('invalid file path!', 'red')
-            return
+            raise InvalidFile()
         print("Decrypt RSA " + fileName)
 
         data = b''
@@ -273,15 +288,17 @@ class Window(QMainWindow):
 
                 #return the decompressed decrypted data
                 decryptedData =  zlib.decompress(zipDecryptedData)
-                with open(self.file + '[Decrypted]', 'wb') as fout:
+
+                dirname = os.path.dirname(self.file) + '/'
+                onlyFileName = fileName[len(dirname):]
+                with open(dirname + '[Decrypted]' + onlyFileName, 'wb') as fout:
                     fout.write(decryptedData)
                     fout.close()
 
     def EncryptFileAES(self):
         fileName = self.file
         if not os.path.isfile(fileName):
-            self.lblText('invalid file path!', 'red')
-            return
+            raise InvalidFile()
         if self.file:
             fileName = self.file
             print("Encrypt AES " + fileName)
@@ -293,7 +310,10 @@ class Window(QMainWindow):
             # Write the file size
             fsz = os.path.getsize(fileName)
 
-            with open(fileName+"[Encrypted]", 'wb') as fout:
+
+            dirname = os.path.dirname(fileName) + '/'
+            onlyFileName = fileName[len(dirname):]
+            with open(dirname + "[Encrypted]" + onlyFileName, 'wb') as fout:
                 fout.write(struct.pack('<Q', fsz))
                 fout.write(iv)
 
@@ -315,8 +335,7 @@ class Window(QMainWindow):
     def DecryptFileAES(self):
         fileName = self.file
         if not os.path.isfile(fileName):
-            self.lblText('invalid file path!', 'red')
-            return
+            raise InvalidFile()
         if self.file:
             fileName = self.file
             print("Decrypt " + fileName)
@@ -327,7 +346,9 @@ class Window(QMainWindow):
                 decryptor = AES.new(self.tabWidget.getSymetricKey(), AES.MODE_CBC, iv)
 
                 # Decrypt data
-                with open(fileName+"[Decrypted]", 'wb') as fout:
+                dirname = os.path.dirname(fileName) + '/'
+                onlyFileName = fileName[len(dirname):]
+                with open(dirname + "[Decrypted]" + onlyFileName, 'wb') as fout:
                     sz = 2048
                     while True:
                         data = fin.read(sz)
