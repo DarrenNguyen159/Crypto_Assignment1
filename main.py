@@ -107,8 +107,8 @@ class Window(QMainWindow):
             if self.tabWidget.currentIndex() == 2:
                 self.DecryptFileBlowFish()
             self.lblText('File has been decrypted successfully!', 'green')            
-        # except Exception:
-        #     self.lblText('Decryption failed', 'red')
+        except Exception:
+            self.lblText('Decryption failed', 'red')
 
     def EncryptFileBlowFish(self):
         # create a new blowfish cipher with an unpredictable key between 4 and 56 bytes long.
@@ -133,7 +133,7 @@ class Window(QMainWindow):
         if len(data) % 8 != 0:
             toAdd = 8 - len(data) % 8
         for i in range(toAdd):
-            data += b"d"
+            data += b" "
         
         encrypted_data = cipher.encrypt(data)
 
@@ -142,6 +142,8 @@ class Window(QMainWindow):
         
         #export encrypted file :
         with open(self.file + '[Encrypted]', 'wb') as fout:
+            fsz = os.path.getsize(fileName)
+            fout.write(struct.pack('<Q', fsz))
             fout.write(encrypted_data)
             fout.close()
     
@@ -158,10 +160,15 @@ class Window(QMainWindow):
 
         data = b''
         with open(fileName, 'rb') as fin:
+            # Read file size
+            fsz = struct.unpack('<Q', fin.read(struct.calcsize('<Q')))[0]
+            print(fsz)
             data = fin.read()
+            print(data)
             fin.close()
 
         decryptedData = cipher.decrypt(data)
+        decryptedData = decryptedData[:fsz]
 
         with open(self.file + '[Decrypted]', 'wb') as fout:
             fout.write(decryptedData)
