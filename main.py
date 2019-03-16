@@ -1,6 +1,7 @@
 import sys
 import os
 import struct
+import time
 from Crypto.Cipher import AES, Blowfish
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
@@ -51,10 +52,9 @@ class Window(QMainWindow):
         # lbl
         lbl = QLabel('No file seleted!', self)
         lbl.move(20, 70)
-        lbl.resize(400, 20)
+        lbl.resize(600, 20)
         self.lbl = lbl
         
-
         # open file button
         btnOpenFile = QPushButton('Open', self)
         btnOpenFile.move(475, 20)
@@ -88,25 +88,29 @@ class Window(QMainWindow):
 
     def Encrypt(self):
         try:
+            start = time.time()
             if self.tabWidget.currentIndex() == 0:
                 self.EncryptFileAES()
             if self.tabWidget.currentIndex() == 1:
                 self.EncryptFileRSA()
             if self.tabWidget.currentIndex() == 2:
                 self.EncryptFileBlowFish()
-            self.lblText('File has been decrypted successfully!', 'green')            
+            end = time.time()
+            self.lblText('File has been encrypted successfully in ' + str(end -start) + ' seconds!', 'green')            
         except Exception:
             self.lblText('Encryption failed', 'red')
 
     def Decrypt(self):
-        # try:
+        try:
+            start = time.time()
             if self.tabWidget.currentIndex() == 0:
                 self.DecryptFileAES()
             if self.tabWidget.currentIndex() == 1:
                 self.DecryptFileRSA()
             if self.tabWidget.currentIndex() == 2:
                 self.DecryptFileBlowFish()
-            self.lblText('File has been decrypted successfully!', 'green')            
+            end = time.time()
+            self.lblText('File has been decrypted successfully in ' + str(end -start) + ' seconds!', 'green')              
         except Exception:
             self.lblText('Decryption failed', 'red')
 
