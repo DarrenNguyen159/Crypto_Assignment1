@@ -1,7 +1,7 @@
 import sys
 import os
 import struct
-from Crypto.Cipher import AES
+from Crypto.Cipher import AES, Blowfish
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
 import zlib
