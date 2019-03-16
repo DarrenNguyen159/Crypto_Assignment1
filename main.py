@@ -7,12 +7,6 @@ from Crypto import Random
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QLabel, QMainWindow, QFileDialog, QLineEdit, QTabWidget
 
-def Encrypt():
-    print('Encrypt')
-
-def Decrypt():
-    print('Decrypt')
-
 class Window(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -88,7 +82,15 @@ class Window(QMainWindow):
             self.lbl.setText('File chosen!')
             self.lbl.setStyleSheet('color: black')
 
-    def openEncryptFile(self):
+    def Encrypt(self):
+        if self.tabWidget.currentIndex() == 0:
+            self.EncryptFileAES()
+
+    def Decrypt(self):
+        if self.tabWidget.currentIndex() == 1:
+            self.DecryptFileAES()
+
+    def EncryptFileAES(self):
         if self.file:
             fileName = self.file
             print("Encrypt " + fileName)
@@ -121,7 +123,7 @@ class Window(QMainWindow):
         else:
             self.lblText('Please choose a file first!', 'red')
  
-    def openDecryptFile(self):
+    def DecryptFileAES(self):
         if self.file:
             fileName = self.file
             print("Decrypt " + fileName)
