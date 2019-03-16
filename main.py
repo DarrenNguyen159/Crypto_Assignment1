@@ -86,16 +86,24 @@ class Window(QMainWindow):
             self.lbl.setStyleSheet('color: black')
 
     def Encrypt(self):
-        if self.tabWidget.currentIndex() == 0:
-            self.EncryptFileAES()
-        if self.tabWidget.currentIndex() == 1:
-            self.EncryptFileRSA()
+        try:
+            if self.tabWidget.currentIndex() == 0:
+                self.EncryptFileAES()
+            if self.tabWidget.currentIndex() == 1:
+                self.EncryptFileRSA()
+            self.lblText('File has been decrypted successfully!', 'green')            
+        except Exception:
+            self.lblText('Encryption failed', 'red')
 
     def Decrypt(self):
-        if self.tabWidget.currentIndex() == 0:
-            self.DecryptFileAES()
-        if self.tabWidget.currentIndex() == 1:
-            self.DecryptFileRSA()
+        try:
+            if self.tabWidget.currentIndex() == 0:
+                self.DecryptFileAES()
+            if self.tabWidget.currentIndex() == 1:
+                self.DecryptFileRSA()
+            self.lblText('File has been decrypted successfully!', 'green')            
+        except Exception:
+            self.lblText('Decryption failed', 'red')
 
     def EncryptFileRSA(self):
         fileName = self.file
@@ -227,8 +235,6 @@ class Window(QMainWindow):
                             data += b' ' * (16 - n % 16) # fill in last block with spaces
                         encryptedData = encryptor.encrypt(data)
                         fout.write(encryptedData)
-            self.lblText('File has been encrypted successfully!', 'green')
-
         else:
             self.lblText('Please choose a file first!', 'red')
  
@@ -261,8 +267,6 @@ class Window(QMainWindow):
                         else:
                             fout.write(decd[:fsz]) # remove last spaces
                         fsz -= n
-            self.lblText('File has been decrypted successfully!', 'green')
-
         else:
             self.lblText('Please choose a file first!', 'red')
 
