@@ -6,6 +6,7 @@ from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
 import zlib
 import base64
+from Crypto.Cipher import Blowfish
 from Crypto import Random
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QLabel, QMainWindow, QFileDialog, QLineEdit, QTabWidget
@@ -91,19 +92,81 @@ class Window(QMainWindow):
                 self.EncryptFileAES()
             if self.tabWidget.currentIndex() == 1:
                 self.EncryptFileRSA()
+            if self.tabWidget.currentIndex() == 2:
+                self.EncryptFileBlowFish()
             self.lblText('File has been decrypted successfully!', 'green')            
         except Exception:
             self.lblText('Encryption failed', 'red')
 
     def Decrypt(self):
-        try:
+        # try:
             if self.tabWidget.currentIndex() == 0:
                 self.DecryptFileAES()
             if self.tabWidget.currentIndex() == 1:
                 self.DecryptFileRSA()
+            if self.tabWidget.currentIndex() == 2:
+                self.DecryptFileBlowFish()
             self.lblText('File has been decrypted successfully!', 'green')            
-        except Exception:
-            self.lblText('Decryption failed', 'red')
+        # except Exception:
+        #     self.lblText('Decryption failed', 'red')
+
+    def EncryptFileBlowFish(self):
+        # create a new blowfish cipher with an unpredictable key between 4 and 56 bytes long.
+        bfkey =b''
+        bfkey = self.tabWidget.getSymetricKey2()
+        cipher = Blowfish.new(bfkey)
+
+        #now we can use it to encrypt plaintext
+
+        fileName = self.file
+        if not os.path.isfile(fileName):
+            self.lblText('invalid file path!', 'red')
+            return
+        print("Encrypt BlowFish " + fileName)
+
+        data = b''
+        with open(fileName, 'rb') as fin:
+            data = fin.read()
+            fin.close()
+
+        # Input strings must be a multiple of 8 in length due to blockalgo.py 
+        if len(data) % 8 != 0:
+            toAdd = 8 - len(data) % 8
+        for i in range(toAdd):
+            data += b"d"
+        
+        encrypted_data = cipher.encrypt(data)
+
+        #for debug purpose
+        print(encrypted_data)
+        
+        #export encrypted file :
+        with open(self.file + '[Encrypted]', 'wb') as fout:
+            fout.write(encrypted_data)
+            fout.close()
+    
+    def DecryptFileBlowFish(self):
+        bfkey =b''
+        bfkey = self.tabWidget.getSymetricKey2()
+        cipher = Blowfish.new(bfkey)
+
+        fileName = self.file
+        if not os.path.isfile(fileName):
+            self.lblText('invalid file path!', 'red')
+            return
+        print("Decrypt BlowFish " + fileName)
+
+        data = b''
+        with open(fileName, 'rb') as fin:
+            data = fin.read()
+            fin.close()
+
+        decryptedData = cipher.decrypt(data)
+
+        with open(self.file + '[Decrypted]', 'wb') as fout:
+            fout.write(decryptedData)
+            fout.close()
+
 
     def EncryptFileRSA(self):
         fileName = self.file
@@ -278,6 +341,7 @@ class TabWidget(QWidget):
         # Tabs
         self.tabs = QTabWidget()
         self.tabSymetricKey = QWidget()
+        self.tabSymetricKey2 = QWidget()
         self.tabPublicKey = QWidget()
 
         # Tab AES
@@ -305,9 +369,20 @@ class TabWidget(QWidget):
         self.keyFile = None
         self.openKeyFile = txtOpenKeyFile
 
+
+        #Tab BlowFish 
+        lbl = QLabel('Symetric key: ', self.tabSymetricKey2)
+        lbl.move(10, 25)
+        self.bfKeyInput = QLineEdit('Type in symetric key', self.tabSymetricKey2)
+        self.bfKeyInput.setFixedWidth(200)
+        self.bfKeyInput.move(100, 20) # symetric key input
+        self.bfKeyInput.textChanged.connect(self.checkInputBlowFish)
+
+
         # Showing tabs
         self.tabs.addTab(self.tabSymetricKey, 'AES')
         self.tabs.addTab(self.tabPublicKey, 'RSA')
+        self.tabs.addTab(self.tabSymetricKey2, 'BlowFish')
         self.layout.addWidget(self.tabs)
         self.setLayout(self.layout)
 
@@ -347,6 +422,12 @@ class TabWidget(QWidget):
         else:
             self.app.lblText('The AES symetric key is OK!', '#00AA00')
 
+    def checkInputBlowFish(self):
+        if len(self.bfKeyInput.text()) < 4 or len(self.bfKeyInput.text()) > 56:
+            self.app.lblText('The BlowFish symetric key is between 4 and 56 bytes long', '#AAAA00')
+        else:
+            self.app.lblText('The BlowFish symetric key is OK!', '#00AA00')
+
     def currentIndex(self):
         return self.tabs.currentIndex()
 
@@ -363,6 +444,21 @@ class TabWidget(QWidget):
             return betterKeyInput
         else:
             return self.aesKeyInput.text()
+
+    # get Symetric for blowFish
+    def getSymetricKey2(self):
+        if self.bfKeyInput.text() == "":
+            return " " * 4
+        elif len(self.bfKeyInput.text()) < 4:
+            # key is not 4 bytes long, make it 4 bytes long
+            betterKeyInput = self.bfKeyInput.text() + " " * (4 - len(self.aesKeyInput.text()))
+            return betterKeyInput
+        elif len(self.bfKeyInput.text()) > 56:
+            # key is not 16 bytes long, make it 16 bytes long
+            betterKeyInput = self.aesKeyInput.text()[0:56]
+            return betterKeyInput
+        else:
+            return self.bfKeyInput.text()
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
