@@ -178,9 +178,9 @@ class Window(QMainWindow):
         with open(fileName, 'rb') as fin:
             # Read file size
             fsz = struct.unpack('<Q', fin.read(struct.calcsize('<Q')))[0]
-            print(fsz)
+            # print(fsz)
             data = fin.read()
-            print(data)
+            # print(data)
             fin.close()
 
         decryptedData = cipher.decrypt(data)
