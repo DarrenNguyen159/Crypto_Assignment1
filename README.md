@@ -20,4 +20,5 @@ python3 main.py
 - Chọn Encrypt hoặc Decrypt.
 
 ## Chú ý
+- Ứng dụng chỉ chạy được Linux.
 - File được mã hóa hoặc giải mã sẽ ở cùng thư mục chứa file bị mã hóa hoặc cần giải mã với tên có tiền tố ```[Decrypt]``` hoặc ```[Encrypt]```
