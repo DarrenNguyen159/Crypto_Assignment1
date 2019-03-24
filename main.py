@@ -153,7 +153,7 @@ class Window(QMainWindow):
         encrypted_data = cipher.encrypt(data)
 
         #for debug purpose
-        print(encrypted_data)
+        # print(encrypted_data)
         
         #export encrypted file :
         dirname = os.path.dirname(self.file) + '/'
